@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: GPL-2.0
+config WL
+	tristate "STA64 driver"
+	depends on CFG80211
+	default m
+	---help---
+	  This driver can be built as a module (recommended) that will be called "wl".
+	  If unsure, say M.
