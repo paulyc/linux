@@ -4,8 +4,6 @@
 # what new Make Devilry is this anyway?!?!
 
 #ccflags-$(CONFIG_WL) := -DUSE_IW
-ccflags-y := -DUSE_CFG80211
-ccflags-m := -DUSE_CFG80211
-obj-m := wl.o
+ccflags-$(CONFIG_WL) := -DUSE_CFG80211
+obj-$(CONFIG_WL) := wl.o
 wl-y := linux_osl.o wl_linux.o wl_iw.o wl_cfg80211_hybrid.o wlc_hybrid.o
-wl-m := linux_osl.o wl_linux.o wl_iw.o wl_cfg80211_hybrid.o wlc_hybrid.o
