@@ -2,7 +2,7 @@
 VERSION = 5
 PATCHLEVEL = 6
 SUBLEVEL = 0
-EXTRAVERSION = -rc4-paulyc-clear
+EXTRAVERSION = -rc4-master-clear
 NAME = Kleptomaniac Octopus
 
 # *DOCUMENTATION*
