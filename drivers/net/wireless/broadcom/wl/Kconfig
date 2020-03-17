@@ -1,0 +1,8 @@
+config WL
+	tristate "STA driver support"
+	depends on CFG80211
+	---help---
+	  This adds support for garbage MacBook WiFi chips.
+
+	  To compile this driver as a module, choose M here: the module will be
+	  called wl.  If unsure, say N.
