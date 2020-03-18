@@ -813,6 +813,7 @@ wl_set_auth_type(struct net_device *dev, struct cfg80211_connect_params *sme)
 		break;
 	case NL80211_AUTHTYPE_NETWORK_EAP:
 		WL_DBG(("network eap\n"));
+		/* fallthrough */ // ??? compiler warning
 	default:
 		val = 2;
 		WL_ERR(("invalid auth type (%d)\n", sme->auth_type));
@@ -2397,11 +2398,9 @@ wl_bss_roaming_done(struct wl_cfg80211_priv *wl, struct net_device *ndev,
 {
 	struct wl_cfg80211_connect_info *conn_info = wl_to_conn(wl);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 12, 0)
-	struct cfg80211_bss *bss;
-	struct wlc_ssid *ssid;
-	ssid = &wl->profile->ssid;
-	bss = cfg80211_get_bss(wl_to_wiphy(wl), NULL, (s8 *)&wl->bssid,
-	ssid->SSID, ssid->SSID_len, WLAN_CAPABILITY_ESS, WLAN_CAPABILITY_ESS);
+	struct wlc_ssid *ssid = &wl->profile->ssid;
+	struct cfg80211_bss *bss = cfg80211_get_bss(wl_to_wiphy(wl), NULL, (s8 *)&wl->bssid,
+		ssid->SSID, ssid->SSID_len, WLAN_CAPABILITY_ESS, WLAN_CAPABILITY_ESS);
 	struct cfg80211_roam_info roam_info = {
 		.bss = bss,
 		.req_ie = conn_info->req_ie,
