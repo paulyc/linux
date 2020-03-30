@@ -2,7 +2,7 @@
 VERSION = 5
 PATCHLEVEL = 6
 SUBLEVEL = 0
-EXTRAVERSION = -rc6-paulyc
+EXTRAVERSION = -sta
 NAME = Kleptomaniac Octopus
 
 # *DOCUMENTATION*
