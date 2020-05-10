@@ -2,7 +2,7 @@
 VERSION = 5
 PATCHLEVEL = 6
 SUBLEVEL = 13
-EXTRAVERSION = -arch1
+EXTRAVERSION = -zfs-sta-arch1
 NAME = Kleptomaniac Octopus
 
 # *DOCUMENTATION*
