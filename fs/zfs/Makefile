@@ -1,0 +1,316 @@
+
+obj-$(CONFIG_ZFS) += zfs.o
+
+ccflags-y += -std=gnu99 -Wno-declaration-after-statement
+ccflags-y += -Wno-format-zero-length
+ccflags-y += -include $(src)/zfs_config.h
+ccflags-y += -I$(src)/
+ccflags-y += -I$(src)/icp/include
+ccflags-y += -I$(src)/include/os/linux/kernel
+ccflags-y += -I$(src)/include/os/linux/spl
+ccflags-y += -I$(src)/include/os/linux/zfs
+ccflags-y += -I$(src)/include
+ccflags-y += -DLUA_USE_LONGLONG
+ccflags-y += -D_KERNEL
+ccflags-y += -UDEBUG -DNDEBUG
+ccflags-$(CONFIG_SPARC64) += -Wno-unused-value
+
+asflags-y := $(ccflags-y)
+asflags-$(CONFIG_SPARC64) += -Wno-unused-value
+
+zfs-y += avl/avl.o
+
+zfs-y += icp/illumos-crypto.o
+zfs-y += icp/api/kcf_cipher.o
+zfs-y += icp/api/kcf_digest.o
+zfs-y += icp/api/kcf_mac.o
+zfs-y += icp/api/kcf_miscapi.o
+zfs-y += icp/api/kcf_ctxops.o
+zfs-y += icp/core/kcf_callprov.o
+zfs-y += icp/core/kcf_prov_tabs.o
+zfs-y += icp/core/kcf_sched.o
+zfs-y += icp/core/kcf_mech_tabs.o
+zfs-y += icp/core/kcf_prov_lib.o
+zfs-y += icp/spi/kcf_spi.o
+zfs-y += icp/io/aes.o
+zfs-y += icp/io/edonr_mod.o
+zfs-y += icp/io/sha1_mod.o
+zfs-y += icp/io/sha2_mod.o
+zfs-y += icp/io/skein_mod.o
+zfs-y += icp/os/modhash.o
+zfs-y += icp/os/modconf.o
+zfs-y += icp/algs/modes/cbc.o
+zfs-y += icp/algs/modes/ccm.o
+zfs-y += icp/algs/modes/ctr.o
+zfs-y += icp/algs/modes/ecb.o
+zfs-y += icp/algs/modes/gcm_generic.o
+zfs-y += icp/algs/modes/gcm.o
+zfs-y += icp/algs/modes/modes.o
+zfs-y += icp/algs/aes/aes_impl_generic.o
+zfs-y += icp/algs/aes/aes_impl.o
+zfs-y += icp/algs/aes/aes_modes.o
+zfs-y += icp/algs/edonr/edonr.o
+zfs-y += icp/algs/sha1/sha1.o
+zfs-y += icp/algs/sha2/sha2.o
+zfs-y += icp/algs/sha1/sha1.o
+zfs-y += icp/algs/skein/skein.o
+zfs-y += icp/algs/skein/skein_block.o
+zfs-y += icp/algs/skein/skein_iv.o
+
+zfs-$(CONFIG_X86_64) += icp/asm-x86_64/aes/aeskey.o
+zfs-$(CONFIG_X86_64) += icp/asm-x86_64/aes/aes_amd64.o
+zfs-$(CONFIG_X86_64) += icp/asm-x86_64/aes/aes_aesni.o
+zfs-$(CONFIG_X86_64) += icp/asm-x86_64/modes/gcm_pclmulqdq.o
+zfs-$(CONFIG_X86_64) += icp/asm-x86_64/modes/aesni-gcm-x86_64.o
+zfs-$(CONFIG_X86_64) += icp/asm-x86_64/modes/ghash-x86_64.o
+zfs-$(CONFIG_X86_64) += icp/asm-x86_64/sha1/sha1-x86_64.o
+zfs-$(CONFIG_X86_64) += icp/asm-x86_64/sha2/sha256_impl.o
+zfs-$(CONFIG_X86_64) += icp/asm-x86_64/sha2/sha512_impl.o
+
+zfs-$(CONFIG_X86) += icp/algs/modes/gcm_pclmulqdq.o
+zfs-$(CONFIG_X86) += icp/algs/aes/aes_impl_aesni.o
+zfs-$(CONFIG_X86) += icp/algs/aes/aes_impl_x86-64.o
+
+# Suppress objtool "can't find jump dest instruction at" warnings.  They
+# are caused by the constants which are defined in the text section of the
+# assembly file using .byte instructions (e.g. bswap_mask).  The objtool
+# utility tries to interpret them as opcodes and obviously fails doing so.
+OBJECT_FILES_NON_STANDARD_aesni-gcm-x86_64.o := y
+OBJECT_FILES_NON_STANDARD_ghash-x86_64.o := y
+
+zfs-y += lua/lapi.o
+zfs-y += lua/lauxlib.o
+zfs-y += lua/lbaselib.o
+zfs-y += lua/lcode.o
+zfs-y += lua/lcompat.o
+zfs-y += lua/lcorolib.o
+zfs-y += lua/lctype.o
+zfs-y += lua/ldebug.o
+zfs-y += lua/ldo.o
+zfs-y += lua/lfunc.o
+zfs-y += lua/lgc.o
+zfs-y += lua/llex.o
+zfs-y += lua/lmem.o
+zfs-y += lua/lobject.o
+zfs-y += lua/lopcodes.o
+zfs-y += lua/lparser.o
+zfs-y += lua/lstate.o
+zfs-y += lua/lstring.o
+zfs-y += lua/lstrlib.o
+zfs-y += lua/ltable.o
+zfs-y += lua/ltablib.o
+zfs-y += lua/ltm.o
+zfs-y += lua/lvm.o
+zfs-y += lua/lzio.o
+zfs-y += lua/setjmp/setjmp.o
+
+zfs-y += nvpair/nvpair.o
+zfs-y += nvpair/fnvpair.o
+zfs-y += nvpair/nvpair_alloc_spl.o
+zfs-y += nvpair/nvpair_alloc_fixed.o
+
+zfs-y += os/linux/spl/spl-atomic.o
+zfs-y += os/linux/spl/spl-condvar.o
+zfs-y += os/linux/spl/spl-cred.o
+zfs-y += os/linux/spl/spl-err.o
+zfs-y += os/linux/spl/spl-generic.o
+zfs-y += os/linux/spl/spl-kmem.o
+zfs-y += os/linux/spl/spl-kmem-cache.o
+zfs-y += os/linux/spl/spl-kstat.o
+zfs-y += os/linux/spl/spl-proc.o
+zfs-y += os/linux/spl/spl-procfs-list.o
+zfs-y += os/linux/spl/spl-taskq.o
+zfs-y += os/linux/spl/spl-thread.o
+zfs-y += os/linux/spl/spl-trace.o
+zfs-y += os/linux/spl/spl-tsd.o
+zfs-y += os/linux/spl/spl-vmem.o
+zfs-y += os/linux/spl/spl-xdr.o
+zfs-y += os/linux/spl/spl-zlib.o
+
+zfs-y += unicode/u8_textprep.o
+zfs-y += unicode/uconv.o
+
+zfs-y += zcommon/cityhash.o
+zfs-y += zcommon/zfeature_common.o
+zfs-y += zcommon/zfs_comutil.o
+zfs-y += zcommon/zfs_deleg.o
+zfs-y += zcommon/zfs_fletcher.o
+zfs-y += zcommon/zfs_fletcher_superscalar.o
+zfs-y += zcommon/zfs_fletcher_superscalar4.o
+zfs-y += zcommon/zfs_namecheck.o
+zfs-y += zcommon/zfs_prop.o
+zfs-y += zcommon/zfs_uio.o
+zfs-y += zcommon/zpool_prop.o
+zfs-y += zcommon/zprop_common.o
+
+zfs-$(CONFIG_X86)   += zcommon/zfs_fletcher_intel.o
+zfs-$(CONFIG_X86)   += zcommon/zfs_fletcher_sse.o
+zfs-$(CONFIG_X86)   += zcommon/zfs_fletcher_avx512.o
+zfs-$(CONFIG_ARM64) += zcommon/zfs_fletcher_aarch64_neon.o
+
+zfs-y += zfs/abd.o
+zfs-y += zfs/aggsum.o
+zfs-y += zfs/arc.o
+zfs-y += zfs/blkptr.o
+zfs-y += zfs/bplist.o
+zfs-y += zfs/bpobj.o
+zfs-y += zfs/bptree.o
+zfs-y += zfs/btree.o
+zfs-y += zfs/bqueue.o
+zfs-y += zfs/dataset_kstats.o
+zfs-y += zfs/dbuf.o
+zfs-y += zfs/dbuf_stats.o
+zfs-y += zfs/ddt.o
+zfs-y += zfs/ddt_zap.o
+zfs-y += zfs/dmu.o
+zfs-y += zfs/dmu_diff.o
+zfs-y += zfs/dmu_object.o
+zfs-y += zfs/dmu_objset.o
+zfs-y += zfs/dmu_recv.o
+zfs-y += zfs/dmu_redact.o
+zfs-y += zfs/dmu_send.o
+zfs-y += zfs/dmu_traverse.o
+zfs-y += zfs/dmu_tx.o
+zfs-y += zfs/dmu_zfetch.o
+zfs-y += zfs/dnode.o
+zfs-y += zfs/dnode_sync.o
+zfs-y += zfs/dsl_bookmark.o
+zfs-y += zfs/dsl_crypt.o
+zfs-y += zfs/dsl_dataset.o
+zfs-y += zfs/dsl_deadlist.o
+zfs-y += zfs/dsl_deleg.o
+zfs-y += zfs/dsl_destroy.o
+zfs-y += zfs/dsl_dir.o
+zfs-y += zfs/dsl_pool.o
+zfs-y += zfs/dsl_prop.o
+zfs-y += zfs/dsl_scan.o
+zfs-y += zfs/dsl_synctask.o
+zfs-y += zfs/dsl_userhold.o
+zfs-y += zfs/edonr_zfs.o
+zfs-y += zfs/fm.o
+zfs-y += zfs/gzip.o
+zfs-y += zfs/hkdf.o
+zfs-y += zfs/lz4.o
+zfs-y += zfs/lzjb.o
+zfs-y += zfs/metaslab.o
+zfs-y += zfs/mmp.o
+zfs-y += zfs/multilist.o
+zfs-y += zfs/objlist.o
+zfs-y += zfs/pathname.o
+zfs-y += zfs/range_tree.o
+zfs-y += zfs/refcount.o
+zfs-y += zfs/rrwlock.o
+zfs-y += zfs/sa.o
+zfs-y += zfs/sha256.o
+zfs-y += zfs/skein_zfs.o
+zfs-y += zfs/spa.o
+zfs-y += zfs/spa_boot.o
+zfs-y += zfs/spa_checkpoint.o
+zfs-y += zfs/spa_config.o
+zfs-y += zfs/spa_errlog.o
+zfs-y += zfs/spa_history.o
+zfs-y += zfs/spa_log_spacemap.o
+zfs-y += zfs/spa_misc.o
+zfs-y += zfs/space_map.o
+zfs-y += zfs/space_reftree.o
+zfs-y += zfs/txg.o
+zfs-y += zfs/uberblock.o
+zfs-y += zfs/unique.o
+zfs-y += zfs/vdev.o
+zfs-y += zfs/vdev_cache.o
+zfs-y += zfs/vdev_indirect.o
+zfs-y += zfs/vdev_indirect_births.o
+zfs-y += zfs/vdev_indirect_mapping.o
+zfs-y += zfs/vdev_initialize.o
+zfs-y += zfs/vdev_label.o
+zfs-y += zfs/vdev_mirror.o
+zfs-y += zfs/vdev_missing.o
+zfs-y += zfs/vdev_queue.o
+zfs-y += zfs/vdev_raidz.o
+zfs-y += zfs/vdev_raidz_math.o
+zfs-y += zfs/vdev_raidz_math_scalar.o
+zfs-y += zfs/vdev_removal.o
+zfs-y += zfs/vdev_root.o
+zfs-y += zfs/vdev_trim.o
+zfs-y += zfs/zap.o
+zfs-y += zfs/zap_leaf.o
+zfs-y += zfs/zap_micro.o
+zfs-y += zfs/zcp.o
+zfs-y += zfs/zcp_get.o
+zfs-y += zfs/zcp_global.o
+zfs-y += zfs/zcp_iter.o
+zfs-y += zfs/zcp_set.o
+zfs-y += zfs/zcp_synctask.o
+zfs-y += zfs/zfeature.o
+zfs-y += zfs/zfs_byteswap.o
+zfs-y += zfs/zfs_fm.o
+zfs-y += zfs/zfs_fuid.o
+zfs-y += zfs/zfs_ioctl.o
+zfs-y += zfs/zfs_log.o
+zfs-y += zfs/zfs_onexit.o
+zfs-y += zfs/zfs_quota.o
+zfs-y += zfs/zfs_ratelimit.o
+zfs-y += zfs/zfs_replay.o
+zfs-y += zfs/zfs_rlock.o
+zfs-y += zfs/zfs_sa.o
+zfs-y += zfs/zil.o
+zfs-y += zfs/zio.o
+zfs-y += zfs/zio_checksum.o
+zfs-y += zfs/zio_compress.o
+zfs-y += zfs/zio_inject.o
+zfs-y += zfs/zle.o
+zfs-y += zfs/zrlock.o
+zfs-y += zfs/zthr.o
+zfs-y += zfs/zvol.o
+
+# Suppress incorrect warnings from versions of objtool which are not
+# aware of x86 EVEX prefix instructions used for AVX512.
+OBJECT_FILES_NON_STANDARD_vdev_raidz_math_avx512bw.o := y
+OBJECT_FILES_NON_STANDARD_vdev_raidz_math_avx512f.o := y
+
+zfs-$(CONFIG_X86)   += zfs/vdev_raidz_math_sse2.o
+zfs-$(CONFIG_X86)   += zfs/vdev_raidz_math_ssse3.o
+zfs-$(CONFIG_X86)   += zfs/vdev_raidz_math_avx2.o
+zfs-$(CONFIG_X86)   += zfs/vdev_raidz_math_avx512f.o
+zfs-$(CONFIG_X86)   += zfs/vdev_raidz_math_avx512bw.o
+
+zfs-$(CONFIG_ARM64) += zfs/vdev_raidz_math_aarch64_neon.o
+zfs-$(CONFIG_ARM64) += zfs/vdev_raidz_math_aarch64_neonx2.o
+
+zfs-$(CONFIG_PPC)   += zfs/vdev_raidz_math_powerpc_altivec.o
+zfs-$(CONFIG_PPC64) += zfs/vdev_raidz_math_powerpc_altivec.o
+
+ifeq ($(CONFIG_ALTIVEC),y)
+$(obj)/zfs/vdev_raidz_math_powerpc_altivec.o: c_flags += -maltivec
+endif
+
+zfs-y += os/linux/zfs/abd_os.o
+zfs-y += os/linux/zfs/arc_os.o
+zfs-y += os/linux/zfs/mmp_os.o
+zfs-y += os/linux/zfs/policy.o
+zfs-y += os/linux/zfs/trace.o
+zfs-y += os/linux/zfs/qat.o
+zfs-y += os/linux/zfs/qat_compress.o
+zfs-y += os/linux/zfs/qat_crypt.o
+zfs-y += os/linux/zfs/spa_misc_os.o
+zfs-y += os/linux/zfs/spa_stats.o
+zfs-y += os/linux/zfs/vdev_disk.o
+zfs-y += os/linux/zfs/vdev_file.o
+zfs-y += os/linux/zfs/zfs_acl.o
+zfs-y += os/linux/zfs/zfs_ctldir.o
+zfs-y += os/linux/zfs/zfs_debug.o
+zfs-y += os/linux/zfs/zfs_dir.o
+zfs-y += os/linux/zfs/zfs_file_os.o
+zfs-y += os/linux/zfs/zfs_ioctl_os.o
+zfs-y += os/linux/zfs/zfs_sysfs.o
+zfs-y += os/linux/zfs/zfs_vfsops.o
+zfs-y += os/linux/zfs/zfs_vnops.o
+zfs-y += os/linux/zfs/zfs_znode.o
+zfs-y += os/linux/zfs/zio_crypt.o
+zfs-y += os/linux/zfs/zpl_ctldir.o
+zfs-y += os/linux/zfs/zpl_export.o
+zfs-y += os/linux/zfs/zpl_file.o
+zfs-y += os/linux/zfs/zpl_inode.o
+zfs-y += os/linux/zfs/zpl_super.o
+zfs-y += os/linux/zfs/zpl_xattr.o
+zfs-y += os/linux/zfs/zvol_os.o
