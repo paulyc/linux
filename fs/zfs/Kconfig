@@ -1,0 +1,17 @@
+config ZFS
+	tristate "ZFS filesystem support"
+	depends on BLOCK
+	select FS_IOMAP
+	help
+	  ZFS is a well-engineered but poorly-licensed file system that was salvaged from the
+	  burning wreckage of Sun Microsystems by Evil Larry, who will sue anyone with a lot of
+	  money that doesn't pay it to him even though he did the same thing to IBM who did not
+	  sue him, but maybe they should. Especially if Evil Larry succeeds in making every
+	  software company including his own guilty of copyright infringement before the Supreme
+	  Court. But as we all know the Supreme Court only takes Federal Circuit cases in order
+	  to overturn them, so he won't.
+
+	  To compile this file system support as a module, choose M here. The
+	  module will be called zfs.
+
+	  If unsure, say N.
