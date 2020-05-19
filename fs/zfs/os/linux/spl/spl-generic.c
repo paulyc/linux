@@ -44,12 +44,11 @@
 #include <sys/random.h>
 #include <sys/strings.h>
 #include <linux/kmod.h>
-#include "zfs_gitrev.h"
 #include <linux/mod_compat.h>
 #include <sys/cred.h>
 #include <sys/vnode.h>
 
-char spl_gitrev[64] = ZFS_META_GITREV;
+char spl_gitrev[64] = "4d6043f2b74ded58d36d3254acd12da16023c844";
 
 /* BEGIN CSTYLED */
 unsigned long spl_hostid = 0;
