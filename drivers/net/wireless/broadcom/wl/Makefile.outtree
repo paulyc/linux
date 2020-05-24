@@ -145,8 +145,6 @@ ifeq "$(GE_49)" "1"
 EXTRA_CFLAGS       += -Wno-date-time
 endif
 
-EXTRA_LDFLAGS      := $(src)/lib/wlc_hybrid.o_shipped
-
 KBASE              ?= /lib/modules/`uname -r`
 KBUILD_DIR         ?= $(KBASE)/build
 MDEST_DIR          ?= $(KBASE)/kernel/drivers/net/wireless
@@ -154,6 +152,15 @@ MDEST_DIR          ?= $(KBASE)/kernel/drivers/net/wireless
 # Cross compile setup.  Tool chain and kernel tree, replace with your own.
 CROSS_TOOLS        = /path/to/tools
 CROSS_KBUILD_DIR   = /path/to/kernel/tree
+
+ifeq ($(ARCH),x86_64)
+	ARCH := amd64
+endif
+ifeq ($(ARCH),x86)
+	ARCH := amd64
+endif
+
+wl-objs += arch/$(ARCH)/lib/wlc_hybrid.o
 
 all:
 	KBUILD_NOPEDANTIC=1 make -C $(KBUILD_DIR) M=`pwd`
@@ -164,8 +171,6 @@ cross:
 clean:
 	KBUILD_NOPEDANTIC=1 make -C $(KBUILD_DIR) M=`pwd` clean
 
-install: sign
+install:
 	install -D -m 755 wl.ko $(MDEST_DIR)
 
-sign: all
-	$(KBUILD_DIR)/scripts/sign-file sha512 $(KBUILD_DIR)/certs/signing_key.pem $(KBUILD_DIR)/certs/signing_key.x509 wl.ko
