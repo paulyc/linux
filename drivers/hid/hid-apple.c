@@ -32,6 +32,8 @@
 #define APPLE_NUMLOCK_EMULATION	0x0100
 
 #define APPLE_FLAG_FKEY		0x01
+#define APPLE_FLAG_CAPSKEY  0x02
+#define APPLE_FLAG_CAPSLOCKED 0x04
 
 #define HID_COUNTRY_INTERNATIONAL_ISO	13
 
@@ -45,15 +47,22 @@ module_param(iso_layout, uint, 0644);
 MODULE_PARM_DESC(iso_layout, "Enable/Disable hardcoded ISO-layout of the keyboard. "
 		"(0 = disabled, [1] = enabled)");
 
-static unsigned int swap_opt_cmd;
+static unsigned int swap_opt_cmd = 0;
 module_param(swap_opt_cmd, uint, 0644);
 MODULE_PARM_DESC(swap_opt_cmd, "Swap the Option (\"Alt\") and Command (\"Flag\") keys. "
 		"(For people who want to keep Windows PC keyboard muscle memory. "
 		"[0] = as-is, Mac layout. 1 = swapped, Windows layout.)");
 
+static unsigned int invert_cursor_controls = 0;
+module_param(invert_cursor_controls, uint, 0644);
+MODULE_PARM_DESC(invert_cursor_controls, "Invert FnKey-modulated behavior of the arrow keys. "
+		"([0] = disabled, 1 = enabled, i.e. the Arrow keys are PgUp/PgDn/Home/End when Fn is "
+		"NOT pressed, and Up/Down/Right/Left when Fn IS pressed.");
+
 struct apple_sc {
 	unsigned long quirks;
 	unsigned int fn_on;
+    DECLARE_BITMAP(keys_on, KEY_CNT);
 	DECLARE_BITMAP(pressed_numlock, KEY_CNT);
 };
 
@@ -162,6 +171,14 @@ static const struct apple_key_translation swapped_option_cmd_keys[] = {
 	{ }
 };
 
+static const struct apple_key_translation inverted_arrow_keys[] = {
+	{ KEY_UP,	KEY_PAGEUP, APPLE_FLAG_FKEY|APPLE_FLAG_CAPSLOCKED },
+	{ KEY_DOWN,	KEY_PAGEDOWN, APPLE_FLAG_FKEY|APPLE_FLAG_CAPSLOCKED },
+	{ KEY_LEFT,	KEY_HOME, APPLE_FLAG_FKEY|APPLE_FLAG_CAPSLOCKED },
+	{ KEY_RIGHT, KEY_END, APPLE_FLAG_FKEY|APPLE_FLAG_CAPSLOCKED },
+	{ }
+};
+
 static const struct apple_key_translation *apple_find_translation(
 		const struct apple_key_translation *table, u16 from)
 {
@@ -185,8 +202,36 @@ static int hidinput_apple_event(struct hid_device *hid, struct input_dev *input,
 
 	if (usage->code == KEY_FN) {
 		asc->fn_on = !!value;
+		if (asc->fn_on) {
+			set_bit(APPLE_FLAG_FKEY, asc->keys_on);
+		} else {
+			clear_bit(APPLE_FLAG_FKEY, asc->keys_on);
+		}
 		input_event(input, usage->type, usage->code, value);
 		return 1;
+	}
+
+	if (usage->code == KEY_CAPSLOCK) {
+		if (!!value) {
+			set_bit(APPLE_FLAG_CAPSKEY, asc->keys_on);
+			if (test_bit(APPLE_FLAG_CAPSLOCKED, asc->keys_on)) {
+				clear_bit(APPLE_FLAG_CAPSLOCKED, asc->keys_on);
+			} else {
+				set_bit(APPLE_FLAG_CAPSLOCKED, asc->keys_on);
+			}
+		} else {
+			clear_bit(APPLE_FLAG_CAPSKEY, asc->keys_on);
+		}
+		input_event(input, usage->type, KEY_LEFTMETA, value);
+		return 1;
+	}
+
+	if (invert_cursor_controls) {
+		trans = apple_find_translation(inverted_arrow_keys, usage->code);
+		if (trans && test_bit(APPLE_FLAG_CAPSKEY, asc->keys_on)) {
+			input_event(input, usage->type, trans->to, value);
+			return 1; //usage->code = trans->to;
+		}
 	}
 
 	if (fnmode) {
