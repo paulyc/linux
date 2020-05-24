@@ -58,8 +58,22 @@ module_param(invert_cursor_controls, uint, 0644);
 MODULE_PARM_DESC(
 	invert_cursor_controls,
 	"Invert FnKey-modulated behavior of the arrow keys. "
-	"([0] = disabled, 1 = enabled, i.e. the Arrow keys are PgUp/PgDn/Home/End when Fn is "
-	"NOT pressed, and Up/Down/Right/Left when Fn IS pressed.");
+	"([0] = disabled, 1 = enabled, i.e. the Arrow keys are PgUp/PgDn/Home/End when Fn or CapsLock/RightCtrl is "
+	"NOT pressed, and Up/Down/Right/Left when CapsLock/RightCtrl IS pressed.");
+
+static unsigned int capslock_is_right_ctrl = 0;
+module_param(capslock_is_right_ctrl, uint, 0644);
+MODULE_PARM_DESC(
+	capslock_is_right_ctrl,
+	"Make Caps Lock behave like the missing RightCtrl key on my MBP10,2"
+	"([0] = disabled, 1 = enabled");
+
+static unsigned int capslock_is_cursor_ctrllock = 0;
+module_param(capslock_is_cursor_ctrllock, uint, 0644);
+MODULE_PARM_DESC(
+	capslock_is_cursor_ctrllock,
+	"Make Caps Lock lock the arrow keys as either arrow keys or the missing cursor control keys"
+	"([0] = disabled, 1 = enabled");
 
 struct apple_sc {
 	unsigned long quirks;
@@ -213,6 +227,18 @@ static int hidinput_apple_event(struct hid_device *hid, struct input_dev *input,
 		return 1;
 	}
 
+	if (invert_cursor_controls) {
+		trans = apple_find_translation(inverted_arrow_keys, usage->code);
+		if (trans) {
+			if (test_bit(APPLE_FLAG_FKEY, asc->keys_on) ||
+				(capslock_is_cursor_ctrllock &&
+					test_bit(APPLE_FLAG_CAPSLOCKED, asc->keys_on))) {
+				input_event(input, usage->type, trans->to, value);
+				return 1;
+			}
+		}
+	}
+
 	if (usage->code == KEY_CAPSLOCK) {
 		if (!!value) {
 			set_bit(APPLE_FLAG_CAPSKEY, asc->keys_on);
@@ -224,14 +250,9 @@ static int hidinput_apple_event(struct hid_device *hid, struct input_dev *input,
 		} else {
 			clear_bit(APPLE_FLAG_CAPSKEY, asc->keys_on);
 		}
-		input_event(input, usage->type, KEY_RIGHTCTRL, value);
-		return 1;
-	}
 
-	if (invert_cursor_controls) {
-		trans = apple_find_translation(inverted_arrow_keys, usage->code);
-		if (trans && (test_bit(APPLE_FLAG_FKEY, asc->keys_on) || test_bit(APPLE_FLAG_CAPSLOCKED, asc->keys_on))) {
-			input_event(input, usage->type, trans->to, value);
+		if (capslock_is_right_ctrl) {
+			input_event(input, usage->type, KEY_RIGHTCTRL, value);
 			return 1;
 		}
 	}
