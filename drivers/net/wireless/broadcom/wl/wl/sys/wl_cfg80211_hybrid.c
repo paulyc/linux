@@ -812,7 +812,9 @@ wl_set_auth_type(struct net_device *dev, struct cfg80211_connect_params *sme)
 		WL_DBG(("automatic\n"));
 		break;
 	case NL80211_AUTHTYPE_NETWORK_EAP:
+		val = 2;
 		WL_DBG(("network eap\n"));
+		break;
 	default:
 		val = 2;
 		WL_ERR(("invalid auth type (%d)\n", sme->auth_type));
