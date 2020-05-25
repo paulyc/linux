@@ -135,7 +135,25 @@ config HID_APPLE
 
 	Say Y here if you want support for keyboards of	Apple iBooks, PowerBooks,
 	MacBooks, MacBook Pros and Apple Aluminum.
+	Say M here if you might want to [dangerously] Pimp Your Caps Lock.
 
+config HID_APPLE_PIMPMYCAPS
+	tristate "Apple {i,Power,Mac}Books (Pimp My Caps Lock) [DANGEROUS!]"
+	depends on HID
+	default !EXPERT
+	---help---
+	Support for some Apple devices which less or more break
+	HID specification, with a totally pimped out Caps Lock key.
+	(May cause console tty keyboard to fail on boot)
+
+	Say Y here if you want a Pimped Caps Lock, and probably
+	no support for keyboards of Apple iBooks, PowerBooks, MacBooks,
+	MacBook Pros and Apple Aluminum on a console tty after boot.
+
+	Say M here if you might want to try it out and Unpimp it if it
+	breaks the keyboard while the system is running.
+
+config HID_APPLEIR
 config HID_APPLEIR
 	tristate "Apple infrared receiver"
 	depends on (USB_HID)
