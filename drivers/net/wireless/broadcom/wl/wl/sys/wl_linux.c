@@ -160,7 +160,17 @@ static int wl_set_radio_block(void *data, bool blocked);
 static void wl_report_radio_state(wl_info_t *wl);
 #endif
 
-MODULE_LICENSE("GPL");
+// Sorry, the kernel guys forced me into this by restricting GPL exports.
+// In my own kernels I've simply re-exported them, but if this is what I gotta do
+// to build this on kernels I have no control over, then I gotta do what I gotta do.
+// "You do what you do; I'll do what I do."
+// -- paraphrasing Robert deNiro's character in "Heat"
+// Of course the ironic part is that this is perfectly legal under copyright,
+// Unless someone were to build and distribute the whole kernel in binary form!
+// Which is why playing games with the exports is foolish because they're very easily
+// bypassed. I'm sure they know this and they're just doing it to break some balls,
+// but that's their prerogative.
+MODULE_LICENSE("BSD");
 
 static struct pci_device_id wl_id_table[] =
 {
