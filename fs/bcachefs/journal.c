@@ -966,8 +966,7 @@ void bch2_fs_journal_stop(struct journal *j)
 	wait_event(j->wait, journal_entry_close(j));
 
 	/* do we need to write another journal entry? */
-	if (test_bit(JOURNAL_NOT_EMPTY, &j->flags) ||
-	    c->btree_roots_dirty)
+	if (test_bit(JOURNAL_NOT_EMPTY, &j->flags))
 		bch2_journal_meta(j);
 
 	journal_quiesce(j);
