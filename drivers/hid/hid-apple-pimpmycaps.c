@@ -646,7 +646,7 @@ static const struct hid_device_id apple_devices[] = {
 MODULE_DEVICE_TABLE(hid, apple_devices);
 
 static struct hid_driver apple_driver = {
-	.name = "apple",
+	.name = "apple-pimpmycaps",
 	.id_table = apple_devices,
 	.report_fixup = apple_report_fixup,
 	.probe = apple_probe,
