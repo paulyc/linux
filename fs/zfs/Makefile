@@ -3,7 +3,7 @@ obj-$(CONFIG_ZFS) += zavl.o icp.o zlua.o znvpair.o spl.o zunicode.o zcommon.o zf
 
 ccflags-y += -std=gnu99 -Wno-declaration-after-statement
 ccflags-y += -Wno-format-zero-length
-ccflags-y += -include $(src)/zfs_config.h
+ccflags-y += -include $(src)/include/zfs_config.h
 ccflags-y += -I$(src)/
 ccflags-y += -I$(src)/icp/include
 ccflags-y += -I$(src)/include/kernel

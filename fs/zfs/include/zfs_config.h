@@ -105,7 +105,7 @@
 /* #undef HAVE_BLKG_TRYGET_GPL_ONLY */
 
 /* blk_alloc_queue() expects request function */
-/* #undef HAVE_BLK_ALLOC_QUEUE_REQUEST_FN */
+#define HAVE_BLK_ALLOC_QUEUE_REQUEST_FN 1
 
 /* blk queue backing_dev_info is dynamic */
 #define HAVE_BLK_QUEUE_BDI_DYNAMIC 1
