@@ -10,6 +10,7 @@ ccflags-y += -I$(src)/include/kernel
 ccflags-y += -I$(src)/include/spl
 ccflags-y += -I$(src)/include/zfs
 ccflags-y += -I$(src)/include
+ccflags-y += -I$(src)/../../include
 ccflags-y += -DLUA_USE_LONGLONG
 ccflags-y += -D_KERNEL
 ccflags-y += -UDEBUG -DNDEBUG

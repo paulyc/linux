@@ -470,9 +470,9 @@ blk_generic_start_io_acct(struct request_queue *q, int rw,
     unsigned long sectors, struct hd_struct *part)
 {
 #if defined(HAVE_GENERIC_IO_ACCT_3ARG)
-	generic_start_io_acct(rw, sectors, part);
+	blk_generic_start_io_acct(rw, sectors, part);
 #elif defined(HAVE_GENERIC_IO_ACCT_4ARG)
-	generic_start_io_acct(q, rw, sectors, part);
+	blk_generic_start_io_acct(q, rw, sectors, part);
 #endif
 }
 
@@ -481,9 +481,9 @@ blk_generic_end_io_acct(struct request_queue *q, int rw,
     struct hd_struct *part, unsigned long start_time)
 {
 #if defined(HAVE_GENERIC_IO_ACCT_3ARG)
-	generic_end_io_acct(rw, part, start_time);
+	blk_generic_end_io_acct(rw, part, start_time);
 #elif defined(HAVE_GENERIC_IO_ACCT_4ARG)
-	generic_end_io_acct(q, rw, part, start_time);
+	blk_generic_end_io_acct(q, rw, part, start_time);
 #endif
 }
 

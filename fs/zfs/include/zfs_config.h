@@ -208,7 +208,7 @@
 /* #undef HAVE_GENERIC_IO_ACCT_3ARG */
 
 /* generic_start_io_acct()/generic_end_io_acct() 4 arg available */
-#define HAVE_GENERIC_IO_ACCT_4ARG 1
+ #define HAVE_GENERIC_IO_ACCT_4ARG 1
 
 /* generic_readlink is global */
 /* #undef HAVE_GENERIC_READLINK */
@@ -543,6 +543,9 @@
 /* fops->read/write_iter() are available */
 #define HAVE_VFS_RW_ITERATE 1
 
+/* __vmalloc page flags exists */
+#define HAVE_VMALLOC_PAGE_KERNEL 1
+
 /* yes */
 /* #undef HAVE_WAIT_ON_BIT_ACTION */
 
@@ -661,7 +664,7 @@
 /* #undef ZFS_IS_GPL_COMPATIBLE */
 
 /* Define the project alias string. */
-#define ZFS_META_ALIAS "zfs-0.8.0-781_g4d6043f2b"
+#define ZFS_META_ALIAS "zfs-0.8.0-826_gfeff3f69f"
 
 /* Define the project author. */
 #define ZFS_META_AUTHOR "OpenZFS on Linux"
@@ -691,7 +694,7 @@
 #define ZFS_META_NAME "zfs"
 
 /* Define the project release. */
-#define ZFS_META_RELEASE "781_g4d6043f2b"
+#define ZFS_META_RELEASE "826_gfeff3f69f"
 
 /* Define the project version. */
 #define ZFS_META_VERSION "0.8.0"

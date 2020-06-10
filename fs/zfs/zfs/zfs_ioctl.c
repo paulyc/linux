@@ -2504,7 +2504,8 @@ zfs_prop_set_special(const char *dsname, zprop_source_t source,
 			zfs_cmd_t *zc;
 
 			zc = kmem_zalloc(sizeof (zfs_cmd_t), KM_SLEEP);
-			(void) strcpy(zc->zc_name, dsname);
+			(void) strlcpy(zc->zc_name, dsname,
+			    sizeof (zc->zc_name));
 			(void) zfs_ioc_userspace_upgrade(zc);
 			(void) zfs_ioc_id_quota_upgrade(zc);
 			kmem_free(zc, sizeof (zfs_cmd_t));
@@ -3519,7 +3520,7 @@ zfs_ioc_log_history(const char *unused, nvlist_t *innvl, nvlist_t *outnvl)
  * of the grubenv file.  The file is stored as raw ASCII, and is protected by
  * an embedded checksum.  By default, GRUB will check if the boot filesystem
  * supports storing the environment data in a special location, and if so,
- * will invoke filesystem specific logic to retrieve it. This can be overriden
+ * will invoke filesystem specific logic to retrieve it. This can be overridden
  * by a variable, should the user so desire.
  */
 /* ARGSUSED */
@@ -5271,7 +5272,7 @@ zfs_ioc_recv_new(const char *fsname, nvlist_t *innvl, nvlist_t *outnvl)
 	    strchr(snapname, '%'))
 		return (SET_ERROR(EINVAL));
 
-	(void) strcpy(tofs, snapname);
+	(void) strlcpy(tofs, snapname, sizeof (tofs));
 	tosnap = strchr(tofs, '@');
 	*tosnap++ = '\0';
 
@@ -7374,9 +7375,9 @@ zfsdev_minor_alloc(void)
 }
 
 long
-zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc)
+zfsdev_ioctl_common(uint_t vecnum, zfs_cmd_t *zc, int flag)
 {
-	int error, cmd, flag = 0;
+	int error, cmd;
 	const zfs_ioc_vec_t *vec;
 	char *saved_poolname = NULL;
 	nvlist_t *innvl = NULL;
