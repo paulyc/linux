@@ -745,6 +745,7 @@ typedef enum {
 typedef enum trim_type {
 	TRIM_TYPE_MANUAL = 0,
 	TRIM_TYPE_AUTO = 1,
+	TRIM_TYPE_SIMPLE = 2
 } trim_type_t;
 
 /* state manipulation functions */
@@ -788,6 +789,7 @@ extern int bpobj_enqueue_free_cb(void *arg, const blkptr_t *bp, dmu_tx_t *tx);
 #define	SPA_ASYNC_TRIM_RESTART			0x200
 #define	SPA_ASYNC_AUTOTRIM_RESTART		0x400
 #define	SPA_ASYNC_L2CACHE_REBUILD		0x800
+#define	SPA_ASYNC_L2CACHE_TRIM			0x1000
 
 /*
  * Controls the behavior of spa_vdev_remove().
@@ -891,7 +893,7 @@ typedef struct spa_history_kstat {
 	uint64_t		count;
 	uint64_t		size;
 	kstat_t			*kstat;
-	void			*private;
+	void			*priv;
 	list_t			list;
 } spa_history_kstat_t;
 
@@ -940,6 +942,12 @@ typedef struct spa_iostats {
 	kstat_named_t	autotrim_bytes_skipped;
 	kstat_named_t	autotrim_extents_failed;
 	kstat_named_t	autotrim_bytes_failed;
+	kstat_named_t	simple_trim_extents_written;
+	kstat_named_t	simple_trim_bytes_written;
+	kstat_named_t	simple_trim_extents_skipped;
+	kstat_named_t	simple_trim_bytes_skipped;
+	kstat_named_t	simple_trim_extents_failed;
+	kstat_named_t	simple_trim_bytes_failed;
 } spa_iostats_t;
 
 extern void spa_stats_init(spa_t *spa);
@@ -1131,10 +1139,10 @@ extern const char *spa_state_to_name(spa_t *spa);
 /* error handling */
 struct zbookmark_phys;
 extern void spa_log_error(spa_t *spa, const zbookmark_phys_t *zb);
-extern int zfs_ereport_post(const char *class, spa_t *spa, vdev_t *vd,
+extern int zfs_ereport_post(const char *clazz, spa_t *spa, vdev_t *vd,
     const zbookmark_phys_t *zb, zio_t *zio, uint64_t stateoroffset,
     uint64_t length);
-extern boolean_t zfs_ereport_is_valid(const char *class, spa_t *spa, vdev_t *vd,
+extern boolean_t zfs_ereport_is_valid(const char *clazz, spa_t *spa, vdev_t *vd,
     zio_t *zio);
 extern nvlist_t *zfs_event_create(spa_t *spa, vdev_t *vd, const char *type,
     const char *name, nvlist_t *aux);

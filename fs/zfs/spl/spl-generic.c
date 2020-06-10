@@ -44,7 +44,7 @@
 #include <sys/random.h>
 #include <sys/strings.h>
 #include <linux/kmod.h>
-#include <zfs_gitrev.h>
+#include "zfs_gitrev.h"
 #include <linux/mod_compat.h>
 #include <sys/cred.h>
 #include <sys/vnode.h>
