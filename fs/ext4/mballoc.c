@@ -4652,7 +4652,7 @@ ext4_fsblk_t ext4_mb_new_blocks(handle_t *handle,
 	sbi = EXT4_SB(sb);
 
 	trace_ext4_request_blocks(ar);
-
+	goto repeat;
 	/* Allow to use superuser reservation for quota file */
 	if (ext4_is_quota_file(ar->inode))
 		ar->flags |= EXT4_MB_USE_ROOT_BLOCKS;

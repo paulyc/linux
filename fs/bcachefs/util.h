@@ -99,7 +99,11 @@ static inline void *vpmalloc(size_t size, gfp_t gfp_mask)
 {
 	return (void *) __get_free_pages(gfp_mask|__GFP_NOWARN,
 					 get_order(size)) ?:
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
 		__vmalloc(size, gfp_mask, PAGE_KERNEL);
+#else
+		__vmalloc(size, gfp_mask);
+#endif
 }
 
 static inline void kvpfree(void *p, size_t size)

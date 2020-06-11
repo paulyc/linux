@@ -442,8 +442,11 @@ void bch2_btree_keys_free(struct btree *b)
 int bch2_btree_keys_alloc(struct btree *b, unsigned page_order, gfp_t gfp)
 {
 	b->page_order	= page_order;
-	b->aux_data	= __vmalloc(btree_aux_data_bytes(b), gfp,
-				    PAGE_KERNEL_EXEC);
+	b->aux_data	= __vmalloc(btree_aux_data_bytes(b), gfp
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+				    ,PAGE_KERNEL_EXEC
+#endif
+	);
 	if (!b->aux_data)
 		return -ENOMEM;
 
