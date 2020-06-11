@@ -15,6 +15,7 @@
 #include <linux/preempt.h>
 #include <linux/ratelimit.h>
 #include <linux/slab.h>
+#include <linux/version.h>
 #include <linux/vmalloc.h>
 #include <linux/workqueue.h>
 

@@ -25,6 +25,7 @@
 #include <linux/aio.h>
 #include <linux/backing-dev.h>
 #include <linux/exportfs.h>
+#include <linux/fiemap.h>
 #include <linux/module.h>
 #include <linux/posix_acl.h>
 #include <linux/random.h>
