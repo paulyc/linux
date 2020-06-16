@@ -99,7 +99,7 @@ static inline void *vpmalloc(size_t size, gfp_t gfp_mask)
 {
 	return (void *) __get_free_pages(gfp_mask|__GFP_NOWARN,
 					 get_order(size)) ?:
-		__vmalloc(size, gfp_mask, PAGE_KERNEL);
+		__vmalloc(size, gfp_mask);
 }
 
 static inline void kvpfree(void *p, size_t size)

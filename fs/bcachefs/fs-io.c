@@ -1819,7 +1819,7 @@ static long bch2_dio_write_loop(struct dio_write *dio)
 			min(BIO_MAX_PAGES * PAGE_SIZE, dio->iter.count);
 
 		if (kthread)
-			use_mm(dio->mm);
+			kthread_use_mm(dio->mm);
 		BUG_ON(current->faults_disabled_mapping);
 		current->faults_disabled_mapping = mapping;
 
@@ -1834,7 +1834,7 @@ static long bch2_dio_write_loop(struct dio_write *dio)
 
 		current->faults_disabled_mapping = NULL;
 		if (kthread)
-			unuse_mm(dio->mm);
+			kthread_unuse_mm(dio->mm);
 
 		if (unlikely(ret < 0))
 			goto err;

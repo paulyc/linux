@@ -1,6 +1,8 @@
 
 obj-$(CONFIG_BCACHEFS_FS)	+= bcachefs.o
 
+ccflags-y += -I$(srctree)/include
+
 bcachefs-y		:=	\
 	acl.o			\
 	alloc_background.o	\
