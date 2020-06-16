@@ -894,7 +894,6 @@ static int add_to_page_cache_vec(struct page **pages, unsigned nr_pages,
 				 pgoff_t index, gfp_t gfp_mask,
 				 void *shadow[])
 {
-	struct mem_cgroup *memcg;
 	int i, nr_added = 0, error = 0;
 
 	for (i = 0; i < nr_pages; i++) {
@@ -904,8 +903,7 @@ static int add_to_page_cache_vec(struct page **pages, unsigned nr_pages,
 		VM_BUG_ON_PAGE(PageSwapCache(page), page);
 
 		if (!PageHuge(page)) {
-			error = mem_cgroup_try_charge(page, current->mm,
-						      gfp_mask, &memcg, false);
+			error = mem_cgroup_charge(page, current->mm, gfp_mask);
 			if (error) {
 				if (!i)
 					return error;
@@ -931,7 +929,7 @@ static int add_to_page_cache_vec(struct page **pages, unsigned nr_pages,
 		struct page *page = pages[i];
 
 		if (!PageHuge(page))
-			mem_cgroup_commit_charge(page, memcg, false, false);
+			mem_cgroup_charge(page, current->mm, gfp_mask);
 
 		trace_mm_filemap_add_to_page_cache(page);
 	}
@@ -940,7 +938,7 @@ static int add_to_page_cache_vec(struct page **pages, unsigned nr_pages,
 		struct page *page = pages[i];
 
 		if (!PageHuge(page))
-			mem_cgroup_cancel_charge(page, memcg, false);
+			mem_cgroup_uncharge(page);
 
 		/* Leave page->index set: truncation relies upon it */
 		page->mapping = NULL;

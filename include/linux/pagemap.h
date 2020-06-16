@@ -675,17 +675,7 @@ void page_cache_readahead_unbounded(struct address_space *, struct file *,
  * Like add_to_page_cache_locked, but used to add newly allocated pages:
  * the page is new, so we can just run __SetPageLocked() against it.
  */
-static inline int add_to_page_cache(struct page *page,
-		struct address_space *mapping, pgoff_t offset, gfp_t gfp_mask)
-{
-	int error;
-
-	__SetPageLocked(page);
-	error = add_to_page_cache_locked(page, mapping, offset, gfp_mask);
-	if (unlikely(error))
-		__ClearPageLocked(page);
-	return error;
-}
+int add_to_page_cache(struct page *page, struct address_space *mapping, pgoff_t offset, gfp_t gfp_mask);
 
 /**
  * struct readahead_control - Describes a readahead request.
