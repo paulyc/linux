@@ -46,6 +46,7 @@ struct io_context;
 struct mempolicy;
 struct nameidata;
 struct nsproxy;
+struct pagecache_lock;
 struct perf_event_context;
 struct pid_namespace;
 struct pipe_inode_info;
@@ -744,6 +745,7 @@ struct task_struct {
 
 	struct mm_struct		*mm;
 	struct mm_struct		*active_mm;
+	struct address_space		*faults_disabled_mapping;
 
 	/* Per-thread vma caching: */
 	struct vmacache			vmacache;
