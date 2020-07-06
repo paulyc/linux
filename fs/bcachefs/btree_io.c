@@ -917,6 +917,7 @@ int bch2_btree_node_read_done(struct bch_fs *c, struct btree *b, bool have_retry
 	struct sort_iter *iter;
 	struct btree_node *sorted;
 	struct bkey_packed *k;
+	struct bch_extent_ptr *ptr;
 	struct bset *i;
 	bool used_mempool, blacklisted;
 	unsigned u64s;
@@ -971,8 +972,10 @@ int bch2_btree_node_read_done(struct bch_fs *c, struct btree *b, bool have_retry
 			bset_encrypt(c, i, b->written << 9);
 
 			if (btree_node_is_extents(b) &&
-			    !BTREE_NODE_NEW_EXTENT_OVERWRITE(b->data))
+			    !BTREE_NODE_NEW_EXTENT_OVERWRITE(b->data)) {
 				set_btree_node_old_extent_overwrite(b);
+				set_btree_node_need_rewrite(b);
+			}
 
 			sectors = vstruct_sectors(b->data, c->block_bits);
 		} else {
@@ -1098,6 +1101,13 @@ int bch2_btree_node_read_done(struct bch_fs *c, struct btree *b, bool have_retry
 	set_needs_whiteout(btree_bset_first(b), true);
 
 	btree_node_reset_sib_u64s(b);
+
+	bkey_for_each_ptr(bch2_bkey_ptrs(bkey_i_to_s(&b->key)), ptr) {
+		struct bch_dev *ca = bch_dev_bkey_exists(c, ptr->dev);
+
+		if (ca->mi.state != BCH_MEMBER_STATE_RW)
+			set_btree_node_need_rewrite(b);
+	}
 out:
 	mempool_free(iter, &c->fill_iter);
 	return retry_read;
@@ -1139,7 +1149,8 @@ static void btree_node_read_work(struct work_struct *work)
 			bio->bi_status = BLK_STS_REMOVED;
 		}
 start:
-		bch2_dev_io_err_on(bio->bi_status, ca, "btree read");
+		bch2_dev_io_err_on(bio->bi_status, ca, "btree read: %s",
+				   blk_status_to_str(bio->bi_status));
 		if (rb->have_ioref)
 			percpu_ref_put(&ca->io_ref);
 		rb->have_ioref = false;
@@ -1423,8 +1434,8 @@ static void btree_node_write_endio(struct bio *bio)
 	if (wbio->have_ioref)
 		bch2_latency_acct(ca, wbio->submit_time, WRITE);
 
-	if (bio->bi_status == BLK_STS_REMOVED ||
-	    bch2_dev_io_err_on(bio->bi_status, ca, "btree write") ||
+	if (bch2_dev_io_err_on(bio->bi_status, ca, "btree write: %s",
+			       blk_status_to_str(bio->bi_status)) ||
 	    bch2_meta_write_fault("btree")) {
 		spin_lock_irqsave(&c->btree_write_error_lock, flags);
 		bch2_dev_list_add_dev(&orig->failed, wbio->dev);
