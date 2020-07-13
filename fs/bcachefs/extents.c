@@ -194,7 +194,7 @@ void bch2_btree_ptr_debugcheck(struct bch_fs *c, struct bkey_s_c k)
 			goto err;
 
 		err = "inconsistent";
-		if (mark.data_type != BCH_DATA_BTREE ||
+		if (mark.data_type != BCH_DATA_btree ||
 		    mark.dirty_sectors < c->opts.btree_node_size)
 			goto err;
 	}
@@ -289,7 +289,7 @@ void bch2_extent_debugcheck(struct bch_fs *c, struct bkey_s_c k)
 			"key too stale: %i", stale);
 
 		bch2_fs_inconsistent_on(!stale &&
-			(mark.data_type != BCH_DATA_USER ||
+			(mark.data_type != BCH_DATA_user ||
 			 mark_sectors < disk_sectors), c,
 			"extent pointer not marked: %s:\n"
 			"type %u sectors %u < %u",
@@ -724,7 +724,7 @@ static unsigned bch2_extent_ptr_durability(struct bch_fs *c,
 		if (WARN_ON(!s))
 			goto out;
 
-		durability = max_t(unsigned, durability, s->nr_redundant);
+		durability += s->nr_redundant;
 	}
 out:
 	return durability;

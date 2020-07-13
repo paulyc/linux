@@ -172,7 +172,7 @@ int bch2_congested(void *data, int bdi_bits)
 		unsigned target = READ_ONCE(c->opts.foreground_target);
 		const struct bch_devs_mask *devs = target
 			? bch2_target_to_mask(c, target)
-			: &c->rw_devs[BCH_DATA_USER];
+			: &c->rw_devs[BCH_DATA_user];
 
 		for_each_member_device_rcu(ca, c, i, devs) {
 			bdi = ca->disk_sb.bdev->bd_bdi;
@@ -708,9 +708,12 @@ static struct bch_fs *bch2_fs_alloc(struct bch_sb *sb, struct bch_opts opts)
 	INIT_LIST_HEAD(&c->fsck_errors);
 	mutex_init(&c->fsck_error_lock);
 
-	INIT_LIST_HEAD(&c->ec_new_stripe_list);
-	mutex_init(&c->ec_new_stripe_lock);
-	mutex_init(&c->ec_stripe_create_lock);
+	INIT_LIST_HEAD(&c->ec_stripe_head_list);
+	mutex_init(&c->ec_stripe_head_lock);
+
+	INIT_LIST_HEAD(&c->ec_stripe_new_list);
+	mutex_init(&c->ec_stripe_new_lock);
+
 	spin_lock_init(&c->ec_stripes_heap_lock);
 
 	seqcount_init(&c->gc_pos_lock);
@@ -1108,7 +1111,7 @@ static struct bch_dev *__bch2_dev_alloc(struct bch_fs *c,
 
 	init_rwsem(&ca->bucket_lock);
 
-	writepoint_init(&ca->copygc_write_point, BCH_DATA_USER);
+	writepoint_init(&ca->copygc_write_point, BCH_DATA_user);
 
 	bch2_dev_copygc_init(ca);
 
@@ -1241,7 +1244,7 @@ static int bch2_dev_attach_bdev(struct bch_fs *c, struct bch_sb_handle *sb)
 		return ret;
 
 	if (test_bit(BCH_FS_ALLOC_READ_DONE, &c->flags) &&
-	    !percpu_u64_get(&ca->usage[0]->buckets[BCH_DATA_SB])) {
+	    !percpu_u64_get(&ca->usage[0]->buckets[BCH_DATA_sb])) {
 		mutex_lock(&c->sb_lock);
 		bch2_mark_dev_superblock(ca->fs, ca, 0);
 		mutex_unlock(&c->sb_lock);

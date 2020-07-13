@@ -433,16 +433,16 @@ void bch2_mark_dev_superblock(struct bch_fs *c, struct bch_dev *ca,
 
 		if (offset == BCH_SB_SECTOR)
 			mark_metadata_sectors(c, ca, 0, BCH_SB_SECTOR,
-					      BCH_DATA_SB, flags);
+					      BCH_DATA_sb, flags);
 
 		mark_metadata_sectors(c, ca, offset,
 				      offset + (1 << layout->sb_max_size_bits),
-				      BCH_DATA_SB, flags);
+				      BCH_DATA_sb, flags);
 	}
 
 	for (i = 0; i < ca->journal.nr; i++) {
 		b = ca->journal.buckets[i];
-		bch2_mark_metadata_bucket(c, ca, b, BCH_DATA_JOURNAL,
+		bch2_mark_metadata_bucket(c, ca, b, BCH_DATA_journal,
 					  ca->mi.bucket_size,
 					  gc_phase(GC_PHASE_SB), flags);
 	}
@@ -617,8 +617,11 @@ static int bch2_gc_done(struct bch_fs *c,
 				copy_stripe_field(block_sectors[i],
 						  "block_sectors[%u]", i);
 
-			if (dst->alive)
+			if (dst->alive) {
+				spin_lock(&c->ec_stripes_heap_lock);
 				bch2_stripes_heap_insert(c, dst, dst_iter.pos);
+				spin_unlock(&c->ec_stripes_heap_lock);
+			}
 
 			genradix_iter_advance(&dst_iter, &c->stripes[0]);
 			genradix_iter_advance(&src_iter, &c->stripes[1]);
@@ -673,8 +676,8 @@ static int bch2_gc_done(struct bch_fs *c,
 			char buf[80];
 
 			if (metadata_only &&
-			    (e->data_type == BCH_DATA_USER ||
-			     e->data_type == BCH_DATA_CACHED))
+			    (e->data_type == BCH_DATA_user ||
+			     e->data_type == BCH_DATA_cached))
 				continue;
 
 			bch2_replicas_entry_to_text(&PBUF(buf), e);
@@ -759,8 +762,8 @@ static int bch2_gc_start(struct bch_fs *c,
 			d->gen_valid = s->gen_valid;
 
 			if (metadata_only &&
-			    (s->mark.data_type == BCH_DATA_USER ||
-			     s->mark.data_type == BCH_DATA_CACHED)) {
+			    (s->mark.data_type == BCH_DATA_user ||
+			     s->mark.data_type == BCH_DATA_cached)) {
 				d->_mark = s->mark;
 				d->_mark.owned_by_allocator = 0;
 			}

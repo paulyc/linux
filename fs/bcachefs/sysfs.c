@@ -168,6 +168,7 @@ read_attribute(btree_updates);
 read_attribute(dirty_btree_nodes);
 read_attribute(btree_key_cache);
 read_attribute(btree_transactions);
+read_attribute(stripes_heap);
 
 read_attribute(internal_uuid);
 
@@ -319,8 +320,8 @@ static ssize_t bch2_new_stripes(struct bch_fs *c, char *buf)
 	struct ec_stripe_head *h;
 	struct ec_stripe_new *s;
 
-	mutex_lock(&c->ec_new_stripe_lock);
-	list_for_each_entry(h, &c->ec_new_stripe_list, list) {
+	mutex_lock(&c->ec_stripe_head_lock);
+	list_for_each_entry(h, &c->ec_stripe_head_list, list) {
 		out += scnprintf(out, end - out,
 				 "target %u algo %u redundancy %u:\n",
 				 h->target, h->algo, h->redundancy);
@@ -331,19 +332,19 @@ static ssize_t bch2_new_stripes(struct bch_fs *c, char *buf)
 					 h->s->blocks.nr,
 					 bitmap_weight(h->s->blocks_allocated,
 						       h->s->blocks.nr));
-
-		mutex_lock(&h->lock);
-		list_for_each_entry(s, &h->stripes, list)
-			out += scnprintf(out, end - out,
-					 "\tin flight: blocks %u allocated %u pin %u\n",
-					 s->blocks.nr,
-					 bitmap_weight(s->blocks_allocated,
-						       s->blocks.nr),
-					 atomic_read(&s->pin));
-		mutex_unlock(&h->lock);
-
 	}
-	mutex_unlock(&c->ec_new_stripe_lock);
+	mutex_unlock(&c->ec_stripe_head_lock);
+
+	mutex_lock(&c->ec_stripe_new_lock);
+	list_for_each_entry(h, &c->ec_stripe_new_list, list) {
+		out += scnprintf(out, end - out,
+				 "\tin flight: blocks %u allocated %u pin %u\n",
+				 s->blocks.nr,
+				 bitmap_weight(s->blocks_allocated,
+					       s->blocks.nr),
+				 atomic_read(&s->pin));
+	}
+	mutex_unlock(&c->ec_stripe_new_lock);
 
 	return out - buf;
 }
@@ -415,6 +416,13 @@ SHOW(bch2_fs)
 		struct printbuf out = _PBUF(buf, PAGE_SIZE);
 
 		bch2_btree_trans_to_text(&out, c);
+		return out.pos - buf;
+	}
+
+	if (attr == &sysfs_stripes_heap) {
+		struct printbuf out = _PBUF(buf, PAGE_SIZE);
+
+		bch2_stripes_heap_to_text(&out, c);
 		return out.pos - buf;
 	}
 
@@ -583,6 +591,7 @@ struct attribute *bch2_fs_internal_files[] = {
 	&sysfs_dirty_btree_nodes,
 	&sysfs_btree_key_cache,
 	&sysfs_btree_transactions,
+	&sysfs_stripes_heap,
 
 	&sysfs_read_realloc_races,
 	&sysfs_extent_migrate_done,
@@ -861,18 +870,18 @@ static ssize_t show_dev_alloc_debug(struct bch_dev *ca, char *buf)
 		fifo_used(&ca->free[RESERVE_NONE]),	ca->free[RESERVE_NONE].size,
 		ca->mi.nbuckets - ca->mi.first_bucket,
 		stats.buckets_alloc,
-		stats.buckets[BCH_DATA_SB],
-		stats.buckets[BCH_DATA_JOURNAL],
-		stats.buckets[BCH_DATA_BTREE],
-		stats.buckets[BCH_DATA_USER],
-		stats.buckets[BCH_DATA_CACHED],
+		stats.buckets[BCH_DATA_sb],
+		stats.buckets[BCH_DATA_journal],
+		stats.buckets[BCH_DATA_btree],
+		stats.buckets[BCH_DATA_user],
+		stats.buckets[BCH_DATA_cached],
 		stats.buckets_ec,
 		ca->mi.nbuckets - ca->mi.first_bucket - stats.buckets_unavailable,
-		stats.sectors[BCH_DATA_SB],
-		stats.sectors[BCH_DATA_JOURNAL],
-		stats.sectors[BCH_DATA_BTREE],
-		stats.sectors[BCH_DATA_USER],
-		stats.sectors[BCH_DATA_CACHED],
+		stats.sectors[BCH_DATA_sb],
+		stats.sectors[BCH_DATA_journal],
+		stats.sectors[BCH_DATA_btree],
+		stats.sectors[BCH_DATA_user],
+		stats.sectors[BCH_DATA_cached],
 		stats.sectors_ec,
 		stats.sectors_fragmented,
 		ca->copygc_threshold,
@@ -880,8 +889,8 @@ static ssize_t show_dev_alloc_debug(struct bch_dev *ca, char *buf)
 		c->open_buckets_nr_free, OPEN_BUCKETS_COUNT,
 		BTREE_NODE_OPEN_BUCKET_RESERVE,
 		c->open_buckets_wait.list.first		? "waiting" : "empty",
-		nr[BCH_DATA_BTREE],
-		nr[BCH_DATA_USER],
+		nr[BCH_DATA_btree],
+		nr[BCH_DATA_user],
 		c->btree_reserve_cache_nr);
 }
 
