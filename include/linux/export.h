@@ -155,11 +155,11 @@ struct kernel_symbol {
 #define _EXPORT_SYMBOL(sym, sec)	__EXPORT_SYMBOL(sym, sec, "")
 #endif
 
-#define EXPORT_SYMBOL(sym)		_EXPORT_SYMBOL(sym, "")
-#define EXPORT_SYMBOL_GPL(sym)		_EXPORT_SYMBOL(sym, "")
-#define EXPORT_SYMBOL_GPL_FUTURE(sym)	_EXPORT_SYMBOL(sym, "")
-#define EXPORT_SYMBOL_NS(sym, ns)	__EXPORT_SYMBOL(sym, "", #ns)
-#define EXPORT_SYMBOL_NS_GPL(sym, ns)	__EXPORT_SYMBOL(sym, "", #ns)
+#define EXPORT_SYMBOL(sym)		   _EXPORT_SYMBOL(sym, "")
+#define EXPORT_SYMBOL_GPL           EXPORT_SYMBOL
+#define EXPORT_SYMBOL_GPL_FUTURE    EXPORT_SYMBOL
+#define EXPORT_SYMBOL_NS(sym, ns) __EXPORT_SYMBOL(sym, "", #ns)
+#define EXPORT_SYMBOL_NS_GPL	    EXPORT_SYMBOL_NS
 
 #ifdef CONFIG_UNUSED_SYMBOLS
 #define EXPORT_UNUSED_SYMBOL(sym)	_EXPORT_SYMBOL(sym, "")
