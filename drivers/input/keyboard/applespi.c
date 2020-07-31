@@ -4,6 +4,7 @@
  *
  * Copyright (c) 2015-2018 Federico Lorenzi
  * Copyright (c) 2017-2018 Ronald Tschalär
+ * Copyright (c) 2020 Paul Ciarlo
  */
 
 /*
@@ -92,6 +93,10 @@
 
 #define SYNAPTICS_VENDOR_ID	0x06cb
 
+#define CAPS_LOCK_MODE_NORMAL 0
+#define CAPS_LOCK_MODE_SPARC  1
+#define CAPS_LOCK_MODE_FNLOCK 2
+
 static unsigned int fnmode = 1;
 module_param(fnmode, uint, 0644);
 MODULE_PARM_DESC(fnmode, "Mode of Fn key on Apple keyboards (0 = disabled, [1] = fkeyslast, 2 = fkeysfirst)");
@@ -108,6 +113,16 @@ static char touchpad_dimensions[40];
 module_param_string(touchpad_dimensions, touchpad_dimensions,
 		    sizeof(touchpad_dimensions), 0444);
 MODULE_PARM_DESC(touchpad_dimensions, "The pixel dimensions of the touchpad, as XxY+W+H .");
+
+static unsigned int capslockmode = 0;
+module_param(capslockmode, uint, 0644);
+MODULE_PARM_DESC(capslockmode, "Caps Lock Mode, aka 'Pimp My Caps' "
+    "([0] = caps-lock-4-life: no change, for people who use Caps Lock, "
+    "1 = sparcstation-mode: Caps Lock key is <>, or 'Meta' but in the emacs sense, in lieu of Esc, "
+    "rather than in the kernel HID code sense for which it means command/windows/contextmenu keys; "
+    "for people who use EMACS; physical Caps Lock LED on the keyboard is meaningless), "
+    "2 = fnlock-mode: Caps Lock key does the same thing as Function except it's a toggle "
+    "indicated by physical Caps Lock LED when Fn is locked on)");
 
 /**
  * struct keyboard_protocol - keyboard message.
@@ -1119,6 +1134,21 @@ applespi_remap_fn_key(struct keyboard_protocol *keyboard_protocol)
 		keyboard_protocol->modifiers &= ~bit;
 }
 
+// Not done, way too early in the morning to be writing this
+static void
+applespi_remap_caps_key(struct keyboard_protocol *keyboard_protocol)
+{
+	static int fn_islocked = 0;
+	if (capslockmode == CAPS_LOCK_MODE_SPARC) {
+		// SPARCStation mode
+	} else if (capslockmode == CAPS_LOCK_MODE_FNLOCK) {
+		// FnLock mode
+	}
+	if (fn_islocked) {
+		keyboard_protocol->fn_pressed = fn_islocked
+	}
+}
+
 static void
 applespi_handle_keyboard_event(struct applespi_data *applespi,
 			       struct keyboard_protocol *keyboard_protocol)
@@ -1136,6 +1166,9 @@ applespi_handle_keyboard_event(struct applespi_data *applespi,
 
 	/* remap fn key if desired */
 	applespi_remap_fn_key(keyboard_protocol);
+
+    /* remap caps lock key if desired */
+	applespi_remap_caps_key(keyboard_protocol);
 
 	/* check released keys */
 	for (i = 0; i < MAX_ROLLOVER; i++) {
@@ -1960,3 +1993,4 @@ MODULE_LICENSE("GPL v2");
 MODULE_DESCRIPTION("MacBook(Pro) SPI Keyboard/Touchpad driver");
 MODULE_AUTHOR("Federico Lorenzi");
 MODULE_AUTHOR("Ronald Tschalär");
+MODULE_AUTHOR("Paul Ciarlo");
