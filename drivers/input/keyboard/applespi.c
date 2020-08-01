@@ -1145,7 +1145,7 @@ applespi_remap_caps_key(struct keyboard_protocol *keyboard_protocol)
 		// FnLock mode
 	}
 	if (fn_islocked) {
-		keyboard_protocol->fn_pressed = fn_islocked
+		keyboard_protocol->fn_pressed = fn_islocked;
 	}
 }
 
