@@ -6,6 +6,7 @@
 #include "buckets.h"
 #include "checksum.h"
 #include "error.h"
+#include "io.h"
 #include "journal.h"
 #include "journal_io.h"
 #include "journal_reclaim.h"
@@ -699,7 +700,7 @@ int bch2_journal_read(struct bch_fs *c, struct list_head *list)
 
 		if (!degraded &&
 		    (test_bit(BCH_FS_REBUILD_REPLICAS, &c->flags) ||
-		     fsck_err_on(!bch2_replicas_marked(c, &replicas.e, false), c,
+		     fsck_err_on(!bch2_replicas_marked(c, &replicas.e), c,
 				 "superblock not marked as containing replicas %s",
 				 (bch2_replicas_entry_to_text(&PBUF(buf),
 							      &replicas.e), buf)))) {
@@ -759,7 +760,7 @@ static void __journal_write_alloc(struct journal *j,
 		    sectors > ja->sectors_free)
 			continue;
 
-		bch2_dev_stripe_increment(c, ca, &j->wp.stripe);
+		bch2_dev_stripe_increment(ca, &j->wp.stripe);
 
 		bch2_bkey_append_ptr(&w->key,
 			(struct bch_extent_ptr) {
@@ -962,7 +963,7 @@ static void journal_write_endio(struct bio *bio)
 	struct journal *j = &ca->fs->journal;
 
 	if (bch2_dev_io_err_on(bio->bi_status, ca, "journal write: %s",
-			       blk_status_to_str(bio->bi_status)) ||
+			       bch2_blk_status_to_str(bio->bi_status)) ||
 	    bch2_meta_write_fault("journal")) {
 		struct journal_buf *w = journal_prev_buf(j);
 		unsigned long flags;
