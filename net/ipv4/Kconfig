@@ -706,6 +706,12 @@ choice
 	config DEFAULT_BBR
 		bool "BBR" if TCP_CONG_BBR=y
 
+	config DEFAULT_HSTCP
+		bool "Highspeed" if TCP_CONG_HSTCP=y
+
+	config DEFAULT_ILLINOIS
+		bool "Illinois" if TCP_CONG_ILLINOIS=y
+
 	config DEFAULT_RENO
 		bool "Reno"
 endchoice
@@ -730,6 +736,8 @@ config DEFAULT_TCP_CONG
 	default "dctcp" if DEFAULT_DCTCP
 	default "cdg" if DEFAULT_CDG
 	default "bbr" if DEFAULT_BBR
+	default "highspeed" if DEFAULT_HSTCP
+	default "illinois" if DEFAULT_ILLINOIS
 	default "cubic"
 
 config TCP_MD5SIG
