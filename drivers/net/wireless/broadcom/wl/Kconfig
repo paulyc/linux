@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: GPL-2.0-only
+config WL
+	tristate "Broadcom 43xx wireless support (STA)"
+	help
+	  sta is a driver for the Broadcom 43xx series wireless devices.
+
+	  Check "lspci" for something like
+	  "Broadcom Corporation BCM43XX 802.11 Wireless LAN Controller"
+	  to determine whether you own such a device.
+
+	  This driver can be built as a module (recommended) that will be called "wl".
+	  If unsure, say M.
+
