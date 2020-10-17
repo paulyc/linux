@@ -1643,7 +1643,7 @@ wl_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 		goto done2;
 	}
 
-	if (segment_eq(get_fs(), KERNEL_DS))
+	if (get_fs().seg == KERNEL_DS.seg)
 		buf = ioc.buf;
 
 	else if (ioc.buf) {
