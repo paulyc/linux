@@ -51,11 +51,22 @@ MODULE_PARM_DESC(swap_opt_cmd, "Swap the Option (\"Alt\") and Command (\"Flag\")
 		"(For people who want to keep Windows PC keyboard muscle memory. "
 		"[0] = as-is, Mac layout. 1 = swapped, Windows layout.)");
 
-static unsigned int swap_fn_leftctrl;
-module_param(swap_fn_leftctrl, uint, 0644);
-MODULE_PARM_DESC(swap_fn_leftctrl, "Swap the Fn and left Control keys. "
-		"(For people who want to keep PC keyboard muscle memory. "
-		"[0] = as-is, Mac layout, 1 = swapped, PC layout)");
+static unsigned int swap_fn;
+module_param(swap_fn, uint, 0644);
+MODULE_PARM_DESC(swap_fn, "Swap the Fn and some other key. "
+		"(For people who had their Fn key cap chewed off and stolen by a cockatoo. "
+		"[0] = as-is, Mac layout, 1 = swap with left Control, 2 = swap with F13[Insert], "
+		"3 = swap with left Command, 4 = swap with Caps Lock");
+
+static unsigned int rightalt_as_rightctrl;
+module_param(rightalt_as_rightctrl, uint, 0644);
+MODULE_PARM_DESC(rightalt_as_rightctrl, "Use the right Alt key as a right Ctrl key. "
+		"[0] = as-is, Mac layout. 1 = Right Alt is right Ctrl");
+
+static unsigned int ejectcd_as_delete;
+module_param(ejectcd_as_delete, uint, 0644);
+MODULE_PARM_DESC(ejectcd_as_delete, "Use Eject-CD key as Delete key. "
+		"([0] = disabled, 1 = enabled)");
 
 struct apple_sc {
 	unsigned long quirks;
@@ -174,6 +185,26 @@ static const struct apple_key_translation swapped_fn_leftctrl_keys[] = {
 	{ }
 };
 
+static const struct apple_key_translation swapped_fn_leftcmd_keys[] = {
+	{ KEY_FN, KEY_LEFTMETA },
+	{ }
+};
+
+static const struct apple_key_translation swapped_fn_f13_keys[] = {
+	{ KEY_FN, KEY_F13 },
+	{ }
+};
+
+static const struct apple_key_translation rightalt_as_rightctrl_keys[] = {
+	{ KEY_RIGHTALT, KEY_RIGHTCTRL },
+	{ }
+};
+
+static const struct apple_key_translation ejectcd_as_delete_keys[] = {
+	{ KEY_EJECTCD,	KEY_DELETE },
+	{ }
+};
+
 static const struct apple_key_translation *apple_find_translation(
 		const struct apple_key_translation *table, u16 from)
 {
@@ -195,11 +226,33 @@ static int hidinput_apple_event(struct hid_device *hid, struct input_dev *input,
 	bool do_translate;
 	u16 code = 0;
 
-	u16 fn_keycode = (swap_fn_leftctrl) ? (KEY_LEFTCTRL) : (KEY_FN);
+	u16 fn_keycode = KEY_FN;
+	switch (swap_fn) {
+	case 1:
+		fn_keycode = KEY_LEFTCTRL;
+		break;
+	case 2:
+		fn_keycode = KEY_F13;
+		break;
+	case 3:
+		fn_keycode = KEY_LEFTMETA;
+		break;
+	case 4:
+		fn_keycode = KEY_CAPSLOCK;
+		break;
+	case 0:
+	default:
+		break;
+	}
 
 	if (usage->code == fn_keycode) {
 		asc->fn_on = !!value;
 		input_event(input, usage->type, KEY_FN, value);
+		return 1;
+	}
+
+	if (usage->code == KEY_FN && swap_fn == 2) {
+		input_event(input, usage->type, KEY_INSERT, value);
 		return 1;
 	}
 
@@ -276,6 +329,14 @@ static int hidinput_apple_event(struct hid_device *hid, struct input_dev *input,
 		}
 	}
 
+	if (rightalt_as_rightctrl) {
+		trans = apple_find_translation(rightalt_as_rightctrl_keys, usage->code);
+		if (trans) {
+			input_event(input, usage->type, trans->to, value);
+			return 1;
+		}
+	}
+
 	if (swap_opt_cmd) {
 		trans = apple_find_translation(swapped_option_cmd_keys, usage->code);
 		if (trans) {
@@ -284,8 +345,32 @@ static int hidinput_apple_event(struct hid_device *hid, struct input_dev *input,
 		}
 	}
 
-	if (swap_fn_leftctrl) {
+	if (swap_fn == 1) {
 		trans = apple_find_translation(swapped_fn_leftctrl_keys, usage->code);
+		if (trans) {
+			input_event(input, usage->type, trans->to, value);
+			return 1;
+		}
+	}
+
+	if (swap_fn == 2) {
+			trans = apple_find_translation(swapped_fn_f13_keys, usage->code);
+			if (trans) {
+				input_event(input, usage->type, trans->to, value);
+				return 1;
+			}
+	}
+
+	if (swap_fn == 3) {
+			trans = apple_find_translation(swapped_fn_leftcmd_keys, usage->code);
+			if (trans) {
+				input_event(input, usage->type, trans->to, value);
+				return 1;
+			}
+	}
+
+	if (ejectcd_as_delete) {
+		trans = apple_find_translation(ejectcd_as_delete_keys, usage->code);
 		if (trans) {
 			input_event(input, usage->type, trans->to, value);
 			return 1;
@@ -356,8 +441,28 @@ static void apple_setup_input(struct input_dev *input)
 	for (trans = apple_iso_keyboard; trans->from; trans++)
 		set_bit(trans->to, input->keybit);
 
-	if (swap_fn_leftctrl) {
+	if (swap_fn == 1) {
 		for (trans = swapped_fn_leftctrl_keys; trans->from; trans++)
+			set_bit(trans->to, input->keybit);
+	}
+
+	if (swap_fn == 2) {
+		for (trans = swapped_fn_f13_keys; trans->from; trans++)
+			set_bit(trans->to, input->keybit);
+	}
+
+	if (swap_fn == 3) {
+		for (trans = swapped_fn_leftcmd_keys; trans->from; trans++)
+			set_bit(trans->to, input->keybit);
+	}
+
+	if (ejectcd_as_delete) {
+		for (trans = ejectcd_as_delete_keys; trans->from; trans++)
+			set_bit(trans->to, input->keybit);
+	}
+
+        if (rightalt_as_rightctrl) {
+		for (trans = rightalt_as_rightctrl_keys; trans->from; trans++)
 			set_bit(trans->to, input->keybit);
 	}
 }
